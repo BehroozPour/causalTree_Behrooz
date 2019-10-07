@@ -82,8 +82,8 @@ honest.causalTree.bP <- function(formula, data, weights, treatment, subset,
 	if (missing(est_treatment)) {
 	    stop("Note give the treatment status of honest estimation data set!\n ")
 	}
-	if (sum(est_treatment %in% c(0,1)) != est_nobs) {
-	    stop("The treatment status should be 1 or 0 only: 1 represent treated and 0 represent controlled.")
+	if (sum(as.integer(treatment<=treatment_max)*as.integer(treatment>=treatment_min)) != est_nobs) {
+	    stop("The treatment status should be between treatment_max and treatment_min.")
 	}
 	if (sum(est_treatment) == 0 || sum(est_treatment) == est_nobs) {
 	    stop("The data only contains treated cases or controlled cases, please check 'est_treatment' again.") 
@@ -298,9 +298,11 @@ honest.causalTree.bP <- function(formula, data, weights, treatment, subset,
 			xgroups <- 0L
 			xval <- 0L
 		} else if (length(xval) == 1L) {
-			# make random groups
-			control_idx <- which(treatment == 0)
-			treat_idx <- which(treatment == 1)
+			# make random groups (BP changes start here.)
+			randomseed <- runif(length(treatment), min=0, max=1) 
+			control_idx <- which(as.integer(randomseed <= 0.5) == 0)
+			treat_idx <- which(as.integer(randomseed > 0.5) == 1)
+			# BP changes end here.
 			xgroups <- rep(0, nobs)
 			xgroups[control_idx] <- sample(rep(1L:xval, length = length(control_idx)), length(control_idx), replace = F)
 			xgroups[treat_idx] <- sample(rep(1L:xval, length = length(treat_idx)), length(treat_idx), replace = F)  
