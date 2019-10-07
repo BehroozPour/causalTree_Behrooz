@@ -44,15 +44,14 @@ honest.causalTree.bP <- function(formula, data, weights, treatment, subset,
 		stop("You should input the treatment status vector for data:
 			 1 represent treated and 0 represent controlled.")   
 	}
+	# BP changes start here
         treatment_max <- 1000
         treatment_min <- 0
 	if (sum(as.integer(treatment<=treatment_max)*as.integer(treatment>=treatment_min)) != nobs) {
 		stop("The treatment value should be between treatment_max and treatment_min. Any observation value outside this range is invalid")
 	}
-	if (sum(treatment) == 0 || sum(treatment) == nobs) {
-		stop("The data only contains treated cases or controlled cases, please check 'treatment' again.") 
-	}
-
+	# BP changes end here
+	
 	# ---------------------------------------------------------------------------------------
 	# check the honest re-estimation data set:
 	if (missing(est_data)) {
@@ -82,14 +81,14 @@ honest.causalTree.bP <- function(formula, data, weights, treatment, subset,
 	if (missing(est_treatment)) {
 	    stop("Note give the treatment status of honest estimation data set!\n ")
 	}
+	# BP changes start here
 	if (sum(as.integer(treatment<=treatment_max)*as.integer(treatment>=treatment_min)) != est_nobs) {
 	    stop("The treatment status should be between treatment_max and treatment_min.")
 	}
-	if (sum(est_treatment) == 0 || sum(est_treatment) == est_nobs) {
+	if (sum(as.integer(est_treatment<=treatment_max)*as.integer(est_treatment>=treatment_min)) != est_nobs) {
 	    stop("The data only contains treated cases or controlled cases, please check 'est_treatment' again.") 
 	}
-	
-
+	# BP changes end here
 	if (est_nvar != nvar) {
 		stop("Honest estimation data set should have same variables as training data!\n")
 	}
@@ -263,6 +262,7 @@ honest.causalTree.bP <- function(formula, data, weights, treatment, subset,
 	HonestSampleSize <- as.integer(HonestSampleSize)
 	if (is.na(HonestSampleSize))
 		stop("HonestSampleSize should be an integer.")
+	
 	# -------------------------------- cv checking ends -------------------------------- #
 
 	init <- get(paste("causalTree", method, sep = "."), envir = environment())(Y, offset, wt) 
@@ -298,7 +298,8 @@ honest.causalTree.bP <- function(formula, data, weights, treatment, subset,
 			xgroups <- 0L
 			xval <- 0L
 		} else if (length(xval) == 1L) {
-			# make random groups (BP changes start here.)
+			# make random groups 
+			# BP changes start here.
 			randomseed <- runif(length(treatment), min=0, max=1) 
 			control_idx <- which(as.integer(randomseed <= 0.5) == 0)
 			treat_idx <- which(as.integer(randomseed > 0.5) == 1)
